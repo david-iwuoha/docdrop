@@ -25,6 +25,7 @@ DocDrop does not collect, send, sell or share any of your data. It has no server
 |---|---|
 | Downloads | To notice when a Word, Excel or PowerPoint file finishes downloading so DocDrop can open it, and to offer a Save As window when saving. |
 | Storage | To remember your settings. |
+| Active tab | Only when you click "Edit the PDF in this tab": lets DocDrop read the PDF open in that one tab so you can edit it. |
 | Access to file URLs (`file:///*`) | To read the file you just downloaded from your computer so it can be shown. Only used for files you download or open. |
 
 ## Children

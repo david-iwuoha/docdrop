@@ -3,7 +3,6 @@
 <head>
   <meta charset="utf-8">
   <title>DocDrop</title>
-  
 </head>
 <body>
   <header>
@@ -17,9 +16,11 @@
   </header>
 
   <p id="status" class="status">Off</p>
-  <p class="hint" id="hint">Turn on to open Word, Excel and PowerPoint downloads in a tab automatically.</p>
+  <p class="hint" id="hint">Turn on to open PDF, Word, Excel and PowerPoint downloads in a tab automatically.</p>
 
   <button id="openTab" type="button" class="primary">Open DocDrop</button>
+  <button id="editPdf" type="button" class="secondary" title="Open the PDF you are viewing in this tab">Edit the PDF in this tab</button>
+  <p id="pdfMsg" class="msg" hidden></p>
 
   <section id="recentBox" hidden>
     <h2>Recent files</h2>

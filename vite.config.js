@@ -1,23 +1,30 @@
 import { defineConfig } from 'vite';
 import { fileURLToPath } from 'node:url';
-import { existsSync, mkdirSync, copyFileSync } from 'node:fs';
+import { existsSync, mkdirSync, copyFileSync, cpSync } from 'node:fs';
 
 const here = (p) => fileURLToPath(new URL(p, import.meta.url));
+const stub = here('./src/shared/node-canvas-stub.js');
 
-// Copies the licence and notice files of bundled libraries into dist/licenses,
-// as their licences ask when they are redistributed.
-const LICENSED = ['superdoc', 'pptx-vanilla-viewer', 'exceljs', 'xlsx', 'three'];
-function copyLicenses() {
+// Copies files the extension needs at runtime, plus the licence and notice
+// files of bundled libraries (their licences ask for this when redistributed).
+const LICENSED = ['superdoc', 'pptx-vanilla-viewer', 'exceljs', 'xlsx', 'three', 'pdfjs-dist', 'pdf-lib', 'mupdf'];
+function copyExtras() {
   return {
-    name: 'docdrop-copy-licenses',
+    name: 'docdrop-copy-extras',
     closeBundle() {
+      // PDF.js font and character data, so every PDF renders correctly.
+      const pdfjs = here('./node_modules/pdfjs-dist');
+      for (const dir of ['cmaps', 'standard_fonts', 'wasm']) {
+        if (existsSync(`${pdfjs}/${dir}`)) cpSync(`${pdfjs}/${dir}`, here(`./dist/pdfjs/${dir}`), { recursive: true });
+      }
+      // Licences
       const out = here('./dist/licenses');
       mkdirSync(out, { recursive: true });
       for (const f of ['LICENSE', 'NOTICE.md']) {
         if (existsSync(here('./' + f))) copyFileSync(here('./' + f), `${out}/DocDrop-${f}`);
       }
       for (const pkg of LICENSED) {
-        for (const f of ['LICENSE', 'LICENSE.md', 'LICENSE.txt', 'NOTICE', 'NOTICE.md']) {
+        for (const f of ['LICENSE', 'LICENSE.md', 'LICENSE.txt', 'COPYING', 'NOTICE', 'NOTICE.md']) {
           const src = here(`./node_modules/${pkg}/${f}`);
           if (existsSync(src)) copyFileSync(src, `${out}/${pkg}-${f}`);
         }
@@ -32,11 +39,13 @@ export default defineConfig({
   root: here('./src'),
   publicDir: here('./public'),
   base: './',
-       resolve: {
-       alias: {
-         '@napi-rs/canvas': here('./src/shared/node-canvas-stub.js')
-       }
-     },
+  resolve: {
+    alias: {
+      // Server-only libraries some packages mention; never used in Chrome.
+      '@napi-rs/canvas': stub,
+      'canvas': stub
+    }
+  },
   build: {
     outDir: here('./dist'),
     emptyOutDir: true,
@@ -57,5 +66,5 @@ export default defineConfig({
     }
   },
   worker: { format: 'es' },
-  plugins: [copyLicenses()]
+  plugins: [copyExtras()]
 });
