@@ -43,6 +43,8 @@
     <div id="docToolbar"></div>
   </div>
 
+  <div class="subbar" id="pdfToolbar" hidden></div>
+
   <div class="subbar formula" id="formulaBar" hidden>
     <span class="ref" id="cellRef">A1</span>
     <input id="formula" aria-label="Cell contents" autocomplete="off" spellcheck="false" readonly>
@@ -59,7 +61,7 @@
     <section id="welcome" class="welcome">
       <div class="dropcard">
         <h2 id="welcomeTitle">Drop a file to open it</h2>
-        <p id="welcomeText">Word, Excel and PowerPoint files. Drag one here from Chrome's downloads list or any folder.</p>
+        <p id="welcomeText">PDF, Word, Excel and PowerPoint files. Drag one here from Chrome's downloads list or any folder.</p>
         <div id="welcomeExtra"></div>
         <button type="button" class="primary big" id="welcomeOpen">Open a file</button>
       </div>
@@ -74,6 +76,7 @@
     <div id="docHost" class="host" hidden></div>
     <div id="sheetHost" class="host sheet-host" hidden></div>
     <div id="slidesHost" class="host" hidden></div>
+    <div id="pdfHost" class="host pdf-host" hidden></div>
   </main>
 
   <nav class="tabs" id="sheetTabs" role="tablist" aria-label="Sheets" hidden></nav>

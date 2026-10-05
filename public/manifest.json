@@ -1,18 +1,36 @@
 {
   "manifest_version": 3,
   "name": "DocDrop",
-  "version": "2.1.0",
-  "description": "Open, edit and present Word, Excel and PowerPoint files right in Chrome. Files never leave your computer.",
+  "version": "2.2.0",
+  "description": "Open, edit and present PDF, Word, Excel and PowerPoint files right in Chrome. Files never leave your computer.",
   "minimum_chrome_version": "116",
-  "permissions": ["downloads", "storage"],
-  "host_permissions": ["file:///*"],
-  "background": { "service_worker": "background.js", "type": "module" },
+  "permissions": [
+    "downloads",
+    "storage",
+    "activeTab"
+  ],
+  "host_permissions": [
+    "file:///*"
+  ],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
   "action": {
     "default_title": "DocDrop",
     "default_popup": "popup.html",
-    "default_icon": { "16": "icons/icon16.png", "32": "icons/icon32.png", "48": "icons/icon48.png" }
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png"
+    }
   },
-  "icons": { "16": "icons/icon16.png", "32": "icons/icon32.png", "48": "icons/icon48.png", "128": "icons/icon128.png" },
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
   "content_security_policy": {
     "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self';"
   }

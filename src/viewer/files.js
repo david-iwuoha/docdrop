@@ -23,6 +23,16 @@ export function readLocal(path) {
 }
 
 export async function readRemote(url) {
+  if (/^file:/i.test(url || '')) {
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open('GET', url);
+      xhr.responseType = 'arraybuffer';
+      xhr.onload = () => (xhr.response && xhr.response.byteLength ? resolve(xhr.response) : reject(new Error('empty')));
+      xhr.onerror = () => reject(new Error('blocked'));
+      xhr.send();
+    });
+  }
   if (!/^https?:/i.test(url || '')) throw new Error('no url');
   const res = await fetch(url, { credentials: 'include' });
   if (!res.ok) throw new Error('HTTP ' + res.status);

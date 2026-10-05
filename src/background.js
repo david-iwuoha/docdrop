@@ -1,5 +1,5 @@
 // DocDrop background worker: on/off state, the drop tab, and opening downloads.
-const SUPPORTED = ['docx', 'xlsx', 'xlsm', 'xls', 'ods', 'csv', 'pptx', 'ppt', 'ppsx', 'pptm'];
+const SUPPORTED = ['pdf', 'docx', 'xlsx', 'xlsm', 'xls', 'ods', 'csv', 'pptx', 'ppt', 'ppsx', 'pptm'];
 const VIEWER = chrome.runtime.getURL('viewer.html');
 
 async function isOn() {

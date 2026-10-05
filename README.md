@@ -1,6 +1,6 @@
 # DocDrop
 
-Open, edit and present Office files right in Chrome. Word documents keep their real layout while you edit them, spreadsheets keep their formatting when you save, and PowerPoint decks play as a full-screen slideshow. Everything runs inside the extension: your files never leave your computer.
+Open, edit and present PDF and Office files right in Chrome. Word documents keep their real layout while you edit them, spreadsheets keep their formatting when you save, and PowerPoint decks play as a full-screen slideshow. Everything runs inside the extension: your files never leave your computer.
 
 ![DocDrop opening a Word document](Docs/screenshot.png)
 
@@ -8,6 +8,7 @@ Open, edit and present Office files right in Chrome. Word documents keep their r
 
 | File | Open | Edit and save | Extras |
 |---|---|---|---|
+| PDF (`.pdf`) | Yes, sharp and fast | Yes: change text, add text, highlight, draw, sign, fill forms, reorder pages | Search, zoom, print |
 | Word (`.docx`) | Yes, with true page layout | Yes, as a real `.docx` | Search, print or save as PDF |
 | Excel (`.xlsx`) | Yes, with cell colours, fonts, borders, merged cells | Yes, formatting kept | Formula bar, search across all sheets, zoom |
 | Older spreadsheets (`.xls`, `.xlsm`, `.ods`) | Yes | Saved as a new `.xlsx` copy | Same as above |

@@ -18,5 +18,8 @@ DocDrop bundles the following software. Their licence and notice files are copie
 | ExcelJS | MIT | Excel reading and writing |
 | SheetJS Community Edition | Apache-2.0 | Older spreadsheet formats, number formatting |
 | three.js | MIT | Optional 3D rendering inside the PowerPoint viewer |
+| PDF.js (Mozilla) | Apache-2.0 | PDF viewing |
+| pdf-lib | MIT | Saving PDF edits |
+| MuPDF.js (Artifex) | AGPL-3.0 | Removing old text when existing PDF text is changed |
 
 These projects have not been modified; DocDrop uses them as published on npm (SheetJS from its official CDN).

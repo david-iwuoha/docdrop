@@ -19,6 +19,9 @@ const state = {
 let sheetView = null;
 let docView = null;
 let slidesView = null;
+let pdfView = null;
+
+const EDITABLE = ['doc', 'sheet', 'pdf'];
 
 // ---------- small UI helpers ----------
 
@@ -32,31 +35,35 @@ function status(text, isError = false) {
 }
 
 function setDirty(on) {
+  const changed = state.dirty !== on;
   state.dirty = on;
+  if (!changed) return; // called on every keystroke, so do nothing unless it changed
   $('unsaved').hidden = !on;
   document.title = (on ? '* ' : '') + (state.name || 'DocDrop');
+  if (state.kind) updateChrome();
 }
 
 function showOnly(hostId) {
-  for (const id of ['welcome', 'docHost', 'sheetHost', 'slidesHost']) $(id).hidden = id !== hostId;
+  for (const id of ['welcome', 'docHost', 'sheetHost', 'slidesHost', 'pdfHost']) $(id).hidden = id !== hostId;
 }
 
 function updateChrome() {
   const k = state.kind;
-  const editable = k === 'doc' || k === 'sheet';
+  const editable = EDITABLE.includes(k);
   $('kind').hidden = !k;
   $('kind').textContent = k ? extensionOf(state.name).toUpperCase() : '';
   $('title').textContent = state.name || 'DocDrop';
   $('searchBox').hidden = !editable;
-  $('zoomBox').hidden = k !== 'sheet';
+  $('zoomBox').hidden = !(k === 'sheet' || k === 'pdf');
   $('editBtn').hidden = !editable;
   $('editBtn').setAttribute('aria-pressed', String(state.editing));
   $('editBtn').textContent = state.editing ? 'Editing' : 'Edit';
-  $('saveBtn').hidden = !editable || !state.editing;
-  $('saveAsBtn').hidden = !editable || !state.editing;
+  $('saveBtn').hidden = !editable || !(state.editing || state.dirty);
+  $('saveAsBtn').hidden = !editable || !(state.editing || state.dirty);
   $('presentBtn').hidden = k !== 'slides';
   $('printBtn').hidden = !k;
   $('docToolbarWrap').hidden = !(k === 'doc' && state.editing);
+  $('pdfToolbar').hidden = k !== 'pdf';
   $('formulaBar').hidden = k !== 'sheet';
   $('sheetTools').hidden = !(k === 'sheet' && state.editing);
   $('sheetTabs').hidden = k !== 'sheet';
@@ -68,7 +75,7 @@ function welcome({ title, html, error = false, busy = false } = {}) {
   const card = document.querySelector('.dropcard');
   card.classList.toggle('error', error);
   $('welcomeTitle').textContent = title || 'Drop a file to open it';
-  $('welcomeText').textContent = title ? '' : "Word, Excel and PowerPoint files. Drag one here from Chrome's downloads list or any folder.";
+  $('welcomeText').textContent = title ? '' : "PDF, Word, Excel and PowerPoint files. Drag one here from Chrome's downloads list or any folder.";
   $('welcomeText').hidden = !!title && !html;
   $('welcomeExtra').innerHTML = busy ? '<div class="spinner" role="status" aria-label="Loading"></div>' : html || '';
   $('welcomeOpen').hidden = busy;
@@ -105,6 +112,7 @@ function teardown() {
   docView?.destroy();
   sheetView?.destroy();
   slidesView?.destroy();
+  pdfView?.destroy();
   state.kind = null;
   state.editing = false;
   state.handle = null;
@@ -153,12 +161,25 @@ async function getSlidesView() {
   return slidesView;
 }
 
+async function getPdfView() {
+  if (!pdfView) {
+    const { PdfView } = await import('./pdf.js');
+    pdfView = new PdfView({
+      host: $('pdfHost'),
+      toolbarHost: $('pdfToolbar'),
+      onDirty: () => setDirty(true),
+      onStatus: (t) => status(t)
+    });
+  }
+  return pdfView;
+}
+
 async function openBuffer(buf, name, { handle = null, remember = true } = {}) {
   const kind = kindOf(name);
   if (!kind) {
     return welcome({
       title: "DocDrop can't open this type of file",
-      html: '<p>It opens .docx, .xlsx, .xls, .xlsm, .ods, .csv, .pptx, .ppt and .ppsx files.</p>',
+      html: '<p>It opens .pdf, .docx, .xlsx, .xls, .xlsm, .ods, .csv, .pptx, .ppt and .ppsx files.</p>',
       error: true
     });
   }
@@ -180,6 +201,13 @@ async function openBuffer(buf, name, { handle = null, remember = true } = {}) {
       showOnly('docHost');
       await v.load(buf, name);
       state.view = v;
+    } else if (kind === 'pdf') {
+      const v = await getPdfView();
+      showOnly('pdfHost');
+      $('pdfToolbar').hidden = false;
+      await v.load(buf, name);
+      state.view = v;
+      $('zoomReset').textContent = Math.round(v.zoom * 100) + '%';
     } else {
       const v = await getSlidesView();
       showOnly('slidesHost');
@@ -225,16 +253,17 @@ async function openFromQuery() {
   const q = new URLSearchParams(location.search);
   if (q.get('recent')) return openRecent(q.get('recent'));
   const path = q.get('path');
-  if (!path) return welcome();
+  const remote = q.get('url');
+  if (!path && !remote) return welcome();
 
-  const name = baseName(path);
+  const name = path ? baseName(path) : q.get('name') || 'document.pdf';
   state.name = name;
   updateChrome();
   welcome({ title: 'Opening ' + name, busy: true });
 
   let buf = null;
-  try { buf = await readLocal(path); } catch { /* try the web address next */ }
-  if (!buf) { try { buf = await readRemote(q.get('url')); } catch { /* fall through */ } }
+  if (path) { try { buf = await readLocal(path); } catch { /* try the web address next */ } }
+  if (!buf && remote) { try { buf = await readRemote(remote); } catch { /* fall through */ } }
   if (buf) return openBuffer(buf, name);
 
   const allowed = await fileAccessAllowed();
@@ -242,7 +271,7 @@ async function openFromQuery() {
     title: 'Drag the file here to open it',
     error: true,
     html: allowed
-      ? "<p>DocDrop couldn't read the download automatically. Drag it in from Chrome's downloads list.</p>"
+      ? "<p>DocDrop couldn't read the file automatically. Download it, then drag it in from Chrome's downloads list.</p>"
       : `<p>To open downloads automatically, turn on file access once:</p>
          <ol><li>Go to <code>chrome://extensions</code></li>
          <li>Click <b>Details</b> on DocDrop</li>
@@ -253,7 +282,7 @@ async function openFromQuery() {
 // ---------- actions ----------
 
 async function toggleEdit() {
-  if (!state.view || state.kind === 'slides') return;
+  if (!state.view || !EDITABLE.includes(state.kind)) return;
   state.editing = !state.editing;
   state.view.setEditing(state.editing);
   updateChrome();
@@ -261,9 +290,10 @@ async function toggleEdit() {
 }
 
 async function save(saveAs = false) {
-  if (!state.view || !(state.kind === 'doc' || state.kind === 'sheet')) return;
+  if (!state.view || !EDITABLE.includes(state.kind)) return;
   const name = state.kind === 'sheet' ? sheetView.outputName() : state.name;
-  const produce = () => (state.kind === 'sheet' ? sheetView.exportBlob() : docView.exportDocx());
+  const produce = () =>
+    state.kind === 'sheet' ? sheetView.exportBlob() : state.kind === 'pdf' ? pdfView.exportBlob() : docView.exportDocx();
   try {
     status('Saving...');
     const result = await saveFile({ name, handle: state.handle, saveAs, produce });
@@ -285,21 +315,23 @@ async function save(saveAs = false) {
 function print() {
   if (state.kind === 'doc') docView.print(state.name);
   else if (state.kind === 'slides') slidesView.print();
+  else if (state.kind === 'pdf') pdfView.print();
   else window.print();
 }
 
-function runSearch(dir) {
-  if (!state.view || !(state.kind === 'doc' || state.kind === 'sheet')) return;
+async function runSearch(dir) {
+  if (!state.view || !EDITABLE.includes(state.kind)) return;
   const q = $('search').value;
-  const res = dir === 0 || state.lastQuery !== q ? state.view.search(q) : state.view.step(dir);
+  const res = await (dir === 0 || state.lastQuery !== q ? state.view.search(q) : state.view.step(dir));
   state.lastQuery = q;
   $('searchCount').textContent = !q ? '' : res.count ? `${res.index + 1} of ${res.count}` : 'No matches';
   if (res.where) status(res.where);
 }
 
 function zoom(delta) {
-  if (!sheetView || state.kind !== 'sheet') return;
-  const z = delta === 0 ? sheetView.setZoom(1) : sheetView.setZoom(sheetView.zoom + delta);
+  const v = state.kind === 'sheet' ? sheetView : state.kind === 'pdf' ? pdfView : null;
+  if (!v) return;
+  const z = delta === 0 ? (state.kind === 'pdf' ? v.fitWidth() : v.setZoom(1)) : v.setZoom(v.zoom + delta);
   $('zoomReset').textContent = Math.round(z * 100) + '%';
 }
 
@@ -343,9 +375,9 @@ document.addEventListener('keydown', (e) => {
   const mod = e.ctrlKey || e.metaKey;
   if (!mod) return;
   const k = e.key.toLowerCase();
-  if (k === 's' && state.editing) { e.preventDefault(); save(e.shiftKey); }
+  if (k === 's' && (state.editing || state.dirty)) { e.preventDefault(); save(e.shiftKey); }
   else if (k === 'o') { e.preventDefault(); openPicker(); }
-  else if (k === 'f' && (state.kind === 'sheet' || state.kind === 'doc')) { e.preventDefault(); $('search').focus(); $('search').select(); }
+  else if (k === 'f' && EDITABLE.includes(state.kind)) { e.preventDefault(); $('search').focus(); $('search').select(); }
   else if (k === 'p' && state.kind) { e.preventDefault(); print(); }
 });
 

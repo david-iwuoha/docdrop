@@ -2,14 +2,15 @@
 export const FORMATS = {
   doc: ['docx'],
   sheet: ['xlsx', 'xlsm', 'xls', 'ods', 'csv'],
-  slides: ['pptx', 'ppt', 'ppsx', 'pptm']
+  slides: ['pptx', 'ppt', 'ppsx', 'pptm'],
+  pdf: ['pdf']
 };
 
 export const ALL_EXTENSIONS = [...FORMATS.doc, ...FORMATS.sheet, ...FORMATS.slides];
 
 export const PICKER_TYPES = [
   {
-    description: 'Documents, spreadsheets and presentations',
+    description: 'Documents, spreadsheets, presentations and PDFs',
     accept: {
       'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx', '.xlsm'],
@@ -17,7 +18,8 @@ export const PICKER_TYPES = [
       'application/vnd.oasis.opendocument.spreadsheet': ['.ods'],
       'text/csv': ['.csv'],
       'application/vnd.openxmlformats-officedocument.presentationml.presentation': ['.pptx', '.ppsx', '.pptm'],
-      'application/vnd.ms-powerpoint': ['.ppt']
+      'application/vnd.ms-powerpoint': ['.ppt'],
+      'application/pdf': ['.pdf']
     }
   }
 ];

@@ -1,5 +1,17 @@
 # Changelog
 
+## 2.2.0
+
+- PDF support: open PDFs with sharp, fast page rendering (only on-screen pages are drawn).
+- Edit PDFs: change existing text, add text, highlight, draw, boxes, white-out, images and signatures.
+- Edits are saved as real PDF content, never as pictures of pages, so nothing goes blurry.
+- Changing existing text properly removes the old words from the file.
+- Fill in PDF forms.
+- Reorder, rotate and delete pages, and add pages from another PDF.
+- Search inside PDFs, zoom and fit to width, print through Chrome's PDF viewer.
+- "Edit the PDF in this tab" button in the popup.
+- The DocDrop tab now reacts once when a file changes, instead of on every keystroke.
+
 ## 2.1.0
 
 - Word documents are now centered in the DocDrop tab.
